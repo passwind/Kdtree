@@ -172,40 +172,76 @@ public class KdTree {
     {
         if (p == null) throw new NullPointerException();
         
-        return nearestPoint(root, p, Double.MAX_VALUE);
+        return nearestPoint(root, p, Double.MAX_VALUE, new RectHV(0.0, 0.0, 1.0, 1.0));
     }
 
-    private Point2D nearestPoint(Node node, Point2D p, double minDist)
+    private Point2D nearestPoint(Node node, Point2D p, double minDist, RectHV nodeRect)
     {
         if (node == null) return null;
-        Point2D np = node.point;
-        double dist = p.distanceTo(np);
-        if (dist > minDist) return node.point;
         
-        Node nextSearchNode = node.left;
-        Node nextSearchNode1 = node.right; 
-        if (!less(p, node))
+        double rectDist = nodeRect.distanceTo(p);
+        if (rectDist > minDist) return null;
+        
+        Point2D np = null;
+        double dist = p.distanceTo(node.point);
+        if (minDist > dist) 
         {
-            nextSearchNode = node.right;
+            minDist = dist;
+            np = node.point;
+        }
+                
+        Node nextSearchNode1;
+        Node nextSearchNode2;
+        RectHV nodeRect1;
+        RectHV nodeRect2;
+        if (less(p, node))
+        {
             nextSearchNode1 = node.left;
+            nextSearchNode2 = node.right;
+            if (node.direction == VERTICAL)
+            {
+                nodeRect1 = new RectHV(nodeRect.xmin(), nodeRect.ymin(), node.point.x(), nodeRect.ymax());
+                nodeRect2 = new RectHV(node.point.x(), nodeRect.ymin(), nodeRect.xmax(), nodeRect.ymax());
+            }
+            else
+            {
+                nodeRect1 = new RectHV(nodeRect.xmin(), nodeRect.ymin(), nodeRect.xmax(), node.point.y());
+                nodeRect2 = new RectHV(nodeRect.xmin(), node.point.y(), nodeRect.xmax(), nodeRect.ymax());
+            }
+        }
+        else
+        {
+            nextSearchNode2 = node.left;
+            nextSearchNode1 = node.right;
+            
+            if (node.direction == VERTICAL)
+            {
+                nodeRect2 = new RectHV(nodeRect.xmin(), nodeRect.ymin(), node.point.x(), nodeRect.ymax());
+                nodeRect1 = new RectHV(node.point.x(), nodeRect.ymin(), nodeRect.xmax(), nodeRect.ymax());
+            }
+            else
+            {
+                nodeRect2 = new RectHV(nodeRect.xmin(), nodeRect.ymin(), nodeRect.xmax(), node.point.y());
+                nodeRect1 = new RectHV(nodeRect.xmin(), node.point.y(), nodeRect.xmax(), nodeRect.ymax());
+            }
         }
         
-        Point2D np1 = nearestPoint(nextSearchNode, p, dist);
+        Point2D np1 = nearestPoint(nextSearchNode1, p, minDist, nodeRect1);
         if (np1 != null) 
         {
             double dist1 = p.distanceTo(np1);
-            if (dist1 < dist) 
+            if (minDist > dist1) 
             {
-                dist = dist1;
+                minDist = dist1;
                 np = np1;
             }
         }
         
-        Point2D np2 = nearestPoint(nextSearchNode1, p, dist);
+        Point2D np2 = nearestPoint(nextSearchNode2, p, minDist, nodeRect2);
         if (np2 != null)
         {
             double dist2 = p.distanceTo(np2);
-            if (dist2 < dist) np = np2;
+            if (minDist > dist2) np = np2;
         }
         
         return np;
@@ -245,8 +281,12 @@ public class KdTree {
         }
         
         Point2D p3 = set.nearest(new Point2D(0.1, 0.3));
+        
         StdOut.println("nearest point is : " + p3);
         
         set.draw();
+        StdDraw.setPenColor();
+        StdDraw.setPenRadius(0.01);
+        StdDraw.point(0.1, 0.3);
     }
 }
