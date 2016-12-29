@@ -214,3 +214,11 @@ pip-log.txt
 
 #Mr Developer
 .mr.developer.cfg
+
+src/KdTreeGenerator.java
+
+src/KdTreeVisualizer.java
+
+src/NearestNeighborVisualizer.java
+
+src/RangeSearchVisualizer.java
