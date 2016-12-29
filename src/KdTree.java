@@ -49,6 +49,8 @@ public class KdTree {
     }
     
     private void insert(Node parent, Point2D p) {
+        if (parent.point.equals(p)) return;
+        
         if (less(p, parent)) 
         {
             if (parent.left == null) 
