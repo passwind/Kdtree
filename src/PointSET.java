@@ -92,7 +92,7 @@ public class PointSET {
         StdOut.println("set is empty: " + set.isEmpty());
         double[] coord = in.readAllDoubles();
         Point2D p2 = null;
-        for (int i = 0; i < coord.length-1; i+=2)
+        for (int i = 0; i < coord.length-1; i += 2)
         {
             Point2D p = new Point2D(coord[i], coord[i+1]);
             if (i == 2) p2 = p;
@@ -106,7 +106,7 @@ public class PointSET {
         
         StdOut.println("set is not empty : " + set.isEmpty());
         
-        Point2D p1 = new Point2D(1000.0,2.0);
+        Point2D p1 = new Point2D(1000.0, 2.0);
         StdOut.println("set not contains point : " + set.contains(p1));
         
         StdOut.println("set contains point : " + set.contains(p2));
