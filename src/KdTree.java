@@ -7,7 +7,7 @@ import edu.princeton.cs.algs4.StdOut;
 
 public class KdTree {
     private final static boolean VERTICAL = true;
-    private final static boolean HORIZONTAL = false;
+//    private final static boolean HORIZONTAL = false;
     private Node root;
     private int n;
     
@@ -28,7 +28,7 @@ public class KdTree {
     // is the set empty? 
     public boolean isEmpty()   
     {
-        return n == 0;
+        return root == null;
     }
     
     // number of points in the set 
@@ -40,19 +40,31 @@ public class KdTree {
     // add the point to the set (if it is not already in the set)
     public void insert(Point2D p)        
     {
-        if (root == null) root = makeNode(null, p);
+        if (root == null) 
+        {
+            root = makeNode(null, p);
+            n++;
+        }
         else insert(root, p);
     }
     
     private void insert(Node parent, Point2D p) {
         if (less(p, parent)) 
         {
-            if (parent.left == null) parent.left = makeNode(parent, p);
+            if (parent.left == null) 
+            {
+                parent.left = makeNode(parent, p);
+                n++;
+            }
             else insert(parent.left, p);
         }
         else
         {
-            if (parent.right == null) parent.right = makeNode(parent, p);
+            if (parent.right == null) 
+            {
+                parent.right = makeNode(parent, p);
+                n++;
+            }
             else insert(parent.right, p);
         }
     }
@@ -75,18 +87,37 @@ public class KdTree {
     public boolean contains(Point2D p)  
     {
         if (p == null) throw new NullPointerException();
-        return points.contains(p);
+        return equals(root, p);
     }
     
+    private boolean equals(Node node, Point2D p)
+    {
+        if (node == null) return false;
+        if (node.point.equals(p)) return true;
+        if (less(p, node)) return equals(node.left, p);
+        else return equals(node.right, p);
+    }
+
     // draw all points to standard draw 
     public void draw()        
     {
-        for (Point2D p : points)
-        {
-            StdDraw.point(p.x(), p.y());
-        }
+        draw(root);
     }
     
+    private void draw(Node node)
+    {
+        if (node == null) return;
+        draw(node.left);
+        drawPoint(node.point);
+        draw(node.right);
+    }
+
+    private void drawPoint(Point2D point)
+    {
+        StdDraw.point(point.x(), point.y());
+        // StdDraw.filledCircle(point.x(), point.y(), 0.05);
+    }
+
     // all points that are inside the rectangle 
     public Iterable<Point2D> range(RectHV rect)      
     {
@@ -94,29 +125,71 @@ public class KdTree {
         
         SET<Point2D> rangePoints = new SET<Point2D>();
         
-        for (Point2D p : points)
-        {
-            if (rect.contains(p)) rangePoints.add(p);
-        }
+        range(rect, root, rangePoints);
+        
         return rangePoints;
     }
     
+    private void range(RectHV rect, Node node, SET<Point2D> set)
+    {
+        if (node == null) return;
+        
+        if (rect.contains(node.point)) set.add(node.point);
+        
+        int comp = compare(rect, node);
+        if (comp < 0) range(rect, node.left, set);
+        else if (comp > 0) range(rect, node.right, set);
+        else
+        {
+            range(rect, node.left, set);
+            range(rect, node.right, set);
+        }
+    }
+
+    private int compare(RectHV rect, Node node)
+    {
+        if (node.direction == VERTICAL)
+        {
+            if (rect.xmax() < node.point.x())
+                return -1;
+            else if (rect.xmin() < node.point.x() && rect.xmax() > node.point.x())
+                return 0;
+            else
+                return 1;
+        }
+        else 
+        {
+            if (rect.ymax() < node.point.y())
+                return -1;
+            else if (rect.ymin() < node.point.y() && rect.ymax() > node.point.y())
+                return 0;
+            else
+                return 1;
+        }
+    }
+
     // a nearest neighbor in the set to point p; null if the set is empty
     public Point2D nearest(Point2D p)   
     {
         if (p == null) throw new NullPointerException();
-        double distance = Double.MAX_VALUE;
-        Point2D nearestPoint = null;
-        for (Point2D pItem : points)
+        
+        return nearestPoint(root, p);
+    }
+
+    private Point2D nearestPoint(Node node, Point2D p)
+    {
+        if (node == null) return null;
+        double dist = node.point.distanceTo(p);
+        Point2D np = null;
+        if (less(p, node)) np = nearestPoint(node.left, p);
+        else np = nearestPoint(node.right, p);
+        if (np != null) 
         {
-            double thisDistance = p.distanceTo(pItem);
-            if (distance > thisDistance) 
-            {
-                distance = thisDistance;
-                nearestPoint = pItem;
-            }
+            double dist1 = np.distanceTo(p);
+            if (dist1 < dist) return np;
         }
-        return nearestPoint;
+        
+        return node.point;
     }
 
     // unit testing of the methods (optional) 
@@ -134,8 +207,6 @@ public class KdTree {
             StdOut.println(p);
             set.insert(p);
         }
-        
-        
         
         StdOut.println("set size = 10 : " + set.size());
         

@@ -67,6 +67,7 @@ public class PointSET {
     public Point2D nearest(Point2D p)   
     {
         if (p == null) throw new NullPointerException();
+        
         double distance = Double.MAX_VALUE;
         Point2D nearestPoint = null;
         for (Point2D pItem : points)
