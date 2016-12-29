@@ -101,21 +101,33 @@ public class KdTree {
     // draw all points to standard draw 
     public void draw()        
     {
-        draw(root);
+        draw(root, 0.0, 0.0, 1.0, 1.0);
     }
     
-    private void draw(Node node)
+    private void draw(Node node, double xmin, double ymin, double xmax, double ymax)
     {
         if (node == null) return;
-        draw(node.left);
-        drawPoint(node.point);
-        draw(node.right);
-    }
-
-    private void drawPoint(Point2D point)
-    {
-        StdDraw.point(point.x(), point.y());
-        // StdDraw.filledCircle(point.x(), point.y(), 0.05);
+        
+        // draw current node
+        StdDraw.setPenColor(StdDraw.BLACK);
+        StdDraw.setPenRadius(0.01);
+        StdDraw.point(node.point.x(), node.point.y());
+        
+        StdDraw.setPenRadius();
+        if (node.direction == VERTICAL)
+        {
+            StdDraw.setPenColor(StdDraw.RED);
+            StdDraw.line(node.point.x(), ymin, node.point.x(), ymax);
+            draw(node.left, xmin, ymin, node.point.x(), ymax);
+            draw(node.right, node.point.x(), ymin, xmax, ymax);
+        }
+        else 
+        {
+            StdDraw.setPenColor(StdDraw.BLUE);
+            StdDraw.line(xmin, node.point.y(), xmax, node.point.y());
+            draw(node.left, xmin, ymin, xmax, node.point.y());
+            draw(node.right, xmin, node.point.y(), xmax, ymax);
+        }
     }
 
     // all points that are inside the rectangle 
